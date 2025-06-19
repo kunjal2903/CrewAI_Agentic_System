@@ -26,3 +26,5 @@ fastapi[all]
 python-dotenv
 httpx 
 beautifulsoup4
+Python-multipart
+PyMuPDF
