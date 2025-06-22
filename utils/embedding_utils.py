@@ -8,3 +8,4 @@ class EmbeddingModel:
     def embed_texts(self, texts:list[str])->list[list[float]]:
         return self.model.encode(texts , convert_to_tensor =False)
     
+    

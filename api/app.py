@@ -5,7 +5,9 @@ from agents.pdf_agent import PDFProcessingAgent
 import shutil
 import os
 from pipelines.pdf_pipeline import ingest_all_pdfs , ingest_pdf_from_path , query_pdf_index
-
+# from crew.carrer_crew import carrer_crew
+# from pipelines.run_pipeline import run_pipeline
+# from crew.carrer_crew import task_news,task_pdf , task_reflect,human_feedback_task
 
 app = FastAPI()
 pdf_agent = PDFProcessingAgent()
@@ -16,6 +18,16 @@ os.makedirs(UPLOAD_DIR, exist_ok =True)
 def root():
     return {"message" : "News Agent API is running  "}
 
+# @app.post("/carrer-insight")
+# def get_carrer_insight(query:str = Form(...)):
+#     task_pdf.description = f"Use pdf documents to provide the insight on '{query}'"
+#     task_news.description = f"Use news articles to summarize the updates on  '{query}'"
+#     task_reflect.description = f"campare the academic and news findings for  '{query}'"
+#     task_feedback_task = f"Ask humans rfor feedback on insights'{query}'"
+
+#     result =  carrer_crew.run()
+#     return result 
+    
 @app.post("/run_news_pipeline")
 async def trigger_pipeline():
     await run_pipeline()
@@ -37,4 +49,3 @@ def ingest_all():
 @app.post("/query-pdf")
 def query_pdf(query:str = Form(...) , top_k:int = Form(5)):
     return query_pdf_index(query=query , k = top_k)
-

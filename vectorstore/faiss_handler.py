@@ -62,7 +62,7 @@ class FAISSHandler:
         top_k: int = 5
     ) -> List[Dict[str, Union[str, float]]]:
         if self.index is None or self.index.ntotal == 0:
-            return [{"error": "❌ FAISS index is empty."}]
+            return [{"error": " FAISS index is empty."}]
 
         if query:
             query_vector = self.embedding_model.encode([query])
@@ -72,7 +72,7 @@ class FAISSHandler:
             elif isinstance(query_vector, np.ndarray) and query_vector.ndim == 1:
                 query_vector = np.expand_dims(query_vector, axis=0)
         else:
-            return [{"error": "❌ No query or query vector provided."}]
+            return [{"error": "No query or query vector provided."}]
 
         D, I = self.index.search(query_vector, top_k)
         results = []

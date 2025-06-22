@@ -22,8 +22,7 @@ class NewsAgent:
             async with httpx.AsyncClient(verify=False) as client:
                 response = await client.get(self.base_url, params=params)
                 if response.status_code == 200:
-                    articles = response.json().get("results", [])
-                    return articles
+                    return response.json().get("results" , [])
                 else:
                     print(" News API Error:", response.status_code, response.text)
                     return []
@@ -31,7 +30,7 @@ class NewsAgent:
             print("Exception during request" , e)
             return  []
         
-        
+  
 # import asyncio
 # from agents.news_agent import NewsAgent
 # from utils.embedding_utils import get_embedding_model, get_embeddings
