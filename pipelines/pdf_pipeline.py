@@ -1,6 +1,7 @@
 import os 
 from agents.pdf_agent import PDFProcessingAgent
-
+from vectorstore.faiss_handler import FAISSHandler
+import glob
 pdf_agent = PDFProcessingAgent()
 
 def ingest_pdf_from_path(filepath:str) ->dict:
@@ -30,3 +31,12 @@ def query_pdf_index(query:str , k:int=5)->dict:
         "query" : query,
         "results" :results
     }
+
+# def run_pdf_ingestion():
+#     handler =  FAISSHandler("vectorstore/pdf_index.faiss")
+#     for path in glob.glob("uploads/*.pdfs"):
+#         text  = extract_path(path)
+
+
+
+                            
