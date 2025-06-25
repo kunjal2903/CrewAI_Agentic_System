@@ -7,6 +7,7 @@ import os
 from pipelines.pdf_pipeline import ingest_all_pdfs , ingest_pdf_from_path , query_pdf_index
 from fastapi import FastAPI
 from pipelines.run_pipeline import run_pipeline , run_pipeline1
+from pipelines.qa_pipeline import run_qa_pipeline
 
 # from pipelines.rag_pipeline import build_rag_graph
 # from fastapi import Form 
@@ -67,6 +68,11 @@ async def run_combined_results(query: str = Form(...)):
         import traceback
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": str(e)})
+    
+@app.post("/ask")
+async def ask_question(query:str =  Form(...)):
+    result  = await run_qa_pipeline(query)
+    return result 
 
 # @app.post("/query-all")
 # async def query_all(query:str = Form(...)):
