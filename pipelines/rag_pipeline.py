@@ -155,6 +155,7 @@
 from langgraph.graph import StateGraph, END
 from agents.pdf_agent import PDFProcessingAgent
 from agents.news_agent import NewsAgent
+from pipelines.web_scrapper_pipeline import run_scraper_pipeline
 from typing import List, Dict, TypedDict, Any
 import requests
 from transformers import pipeline, AutoTokenizer ,  AutoModelForSeq2SeqLM
@@ -172,8 +173,9 @@ class RAGState(TypedDict):
     query: str
     pdf_results: List[Dict[str, Any]]
     news_results: List[Dict[str, Any]]
+    scraper_results: List[Dict[str, Any]]
     final_results: List[Dict[str, Any]]
-    llm_answer:List[Dict[str, Any]]
+    llm_answer: List[Dict[str, Any]]
 
 
 # Node 1: Search PDF FAISS
@@ -210,23 +212,36 @@ async def query_news_node(state: RAGState) -> RAGState:
         return {**state, "news_results": []}
 
 
-# Node 3: Merge news and PDF results
+# Node 3: Query web scraper node
+async def query_scraper_node(state: RAGState) -> RAGState:
+    query = state["query"]
+    try:
+        results = await run_scraper_pipeline(query)
+        print(f"Scraper results: {results}")
+        return {**state, "scraper_results": results}
+    except Exception as e:
+        print("Scraper node error:", str(e))
+        return {**state, "scraper_results": []}
+
+
+
+# Node 4: Merge news and PDF results and scraper results
 def merge_results(state: RAGState) -> RAGState:
     try:
-        merged = state["pdf_results"] + state["news_results"]
+        merged = state["pdf_results"] + state["news_results"]+ state["scraper_results"]
         print(f"✅ Merged results: {merged}")
         return {**state, "final_results": merged}
     except Exception as e:
         print("❌ Merge error:", str(e))
         return {**state, "final_results": []}
 
-#Node 4  : add the LLM response  
+#Node 5  : add the LLM response  
 def llm_response_node(state):
     query =  state["query"]
     merged = state["final_results"]
 
     context = "\n".join([
-        f"- {item.get('title' , "") or item.get("url" , "")} : {item.get("description" , "") or item.get("content" , "")}"
+        f"- {item.get('title' , '') or item.get('url' , '')} : {item.get('description' , '') or item.get('content' , '')}"
         for item in merged
     ])
     prompt = f"""You are helpful Assistant. Use the following context to answer the question.
@@ -246,12 +261,14 @@ def build_rag_graph():
     graph = StateGraph(RAGState)
     graph.add_node("QueryPDF", query_pdf_node)
     graph.add_node("QueryNews", query_news_node)
+    graph.add_node("QueryScraper", query_scraper_node)
     graph.add_node("MergeResults", merge_results)
     graph.add_node("LLMResponse" , llm_response_node)
 
     graph.set_entry_point("QueryPDF")
     graph.add_edge("QueryPDF", "QueryNews")
-    graph.add_edge("QueryNews", "MergeResults")
+    graph.add_edge("QueryNews", "QueryScraper")
+    graph.add_edge("QuerScraper", "MergeResults")
     graph.add_edge("MergeResults", "LLMResponse")
     graph.add_edge("LLMResponse" , END)
 
